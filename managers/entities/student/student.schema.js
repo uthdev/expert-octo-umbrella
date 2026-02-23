@@ -1,12 +1,12 @@
 module.exports = {
     createStudent: [
         {
-            model: 'text',
+            model: 'name',
             path: 'firstName',
             required: true,
         },
         {
-            model: 'text',
+            model: 'name',
             path: 'lastName',
             required: true,
         },
@@ -18,22 +18,22 @@ module.exports = {
             model: 'phone',
         },
         {
-            model: 'id',
+            model: 'objectId',
             path: 'schoolId',
             required: true,
         },
         {
-            model: 'id',
+            model: 'objectId',
             path: 'classroomId',
         }
     ],
     updateStudent: [
         {
-            model: 'text',
+            model: 'name',
             path: 'firstName',
         },
         {
-            model: 'text',
+            model: 'name',
             path: 'lastName',
         },
         {
@@ -41,16 +41,12 @@ module.exports = {
         },
         {
             model: 'phone',
-        },
-        {
-            model: 'id',
-            path: 'classroomId',
         }
     ],
     transferStudent: [
         {
-            model: 'id',
-            path: 'classroomId',
+            model: 'objectId',
+            path: 'newClassroomId',
             required: true,
         }
     ]
