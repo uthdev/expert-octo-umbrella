@@ -11,16 +11,11 @@ module.exports = class SchoolManager {
         this.httpExposed = ['createSchool', 'getSchool', 'updateSchool', 'deleteSchool', 'listSchools'];
     }
 
-    async createSchool({ name, address, phone, email, __auth }) {
+    async createSchool({ name, address, phone, email, __shortToken }) {
         // Check superadmin permission
-        if (!__auth || __auth.role !== roles.SUPERADMIN) {
+        if (__shortToken.role !== roles.SUPERADMIN) {
             return { error: 'Only superadmins can create schools', code: 403 };
         }
-
-        // Validate input
-        const schoolData = { name, address, phone, email };
-        let result = await this.validators.school.createSchool(schoolData);
-        if (result) return result;
 
         try {
             // Check if school with email already exists
@@ -30,7 +25,7 @@ module.exports = class SchoolManager {
             }
 
             // Create school
-            const school = new School(schoolData);
+            const school = new School({ name, address, phone, email });
             await school.save();
 
             return {
@@ -50,10 +45,7 @@ module.exports = class SchoolManager {
         }
     }
 
-    async getSchool({ id, __auth }) {
-        if (!__auth) {
-            return { error: 'Authentication required', code: 401 };
-        }
+    async getSchool({ id, __shortToken }) {
 
         try {
             const school = await School.findById(id);
@@ -79,9 +71,9 @@ module.exports = class SchoolManager {
         }
     }
 
-    async updateSchool({ id, name, address, phone, email, __auth }) {
+    async updateSchool({ id, name, address, phone, email, __shortToken }) {
         // Check superadmin permission
-        if (!__auth || __auth.role !== roles.SUPERADMIN) {
+        if (__shortToken.role !== roles.SUPERADMIN) {
             return { error: 'Only superadmins can update schools', code: 403 };
         }
 
@@ -123,9 +115,9 @@ module.exports = class SchoolManager {
         }
     }
 
-    async deleteSchool({ id, __auth }) {
+    async deleteSchool({ id, __shortToken }) {
         // Check superadmin permission
-        if (!__auth || __auth.role !== roles.SUPERADMIN) {
+        if (__shortToken.role !== roles.SUPERADMIN) {
             return { error: 'Only superadmins can delete schools', code: 403 };
         }
 
@@ -144,10 +136,7 @@ module.exports = class SchoolManager {
         }
     }
 
-    async listSchools({ page = 1, limit = 10, __auth }) {
-        if (!__auth) {
-            return { error: 'Authentication required', code: 401 };
-        }
+    async listSchools({ page = 1, limit = 10, __shortToken }) {
 
         try {
             const skip = (page - 1) * limit;
