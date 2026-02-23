@@ -11,12 +11,12 @@ module.exports = {
             required: true,
         },
         {
-            model: 'id',
+            model: 'objectId',
             path: 'schoolId',
             required: true,
         },
         {
-            model: 'arrayOfStrings',
+            model: 'array',
             path: 'resources',
         }
     ],
@@ -30,7 +30,7 @@ module.exports = {
             path: 'capacity',
         },
         {
-            model: 'arrayOfStrings',
+            model: 'array',
             path: 'resources',
         }
     ]
