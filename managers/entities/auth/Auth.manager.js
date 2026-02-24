@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt');
-const { nanoid } = require('nanoid');
 const roles = require('../../../constants/roles');
 
 module.exports = class Auth {
@@ -10,7 +9,7 @@ module.exports = class Auth {
         this.tokenManager = managers.token;
         this.cache = cache;
         
-        this.httpExposed = ['login', 'logout', 'createSuperAdmin'];
+        this.httpExposed = ['login', 'logout'];
     }
 
     async login({ email, password }) {
@@ -73,42 +72,5 @@ module.exports = class Auth {
         // In a real implementation, you might blacklist the token
         // For now, just return success
         return { message: 'Logged out successfully' };
-    }
-
-    async createSuperAdmin({ email, password }) {
-        // This would typically be a one-time setup endpoint
-        if (!email || !password) {
-            return { error: 'Email and password are required', code: 400 };
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = nanoid();
-        const userKey = nanoid();
-
-        // In production, save to database
-        const superAdmin = {
-            id: userId,
-            email,
-            password: hashedPassword,
-            role: roles.SUPERADMIN,
-            schoolId: null,
-            userKey
-        };
-
-        const longToken = this.tokenManager.genLongToken({
-            userId: superAdmin.id,
-            userKey: superAdmin.userKey,
-            role: superAdmin.role,
-            schoolId: superAdmin.schoolId
-        });
-
-        return {
-            user: {
-                id: superAdmin.id,
-                email: superAdmin.email,
-                role: superAdmin.role
-            },
-            longToken
-        };
     }
 };

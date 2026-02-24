@@ -39,7 +39,7 @@ describe('Authentication Integration Tests', () => {
         });
     });
 
-    describe('POST /token/v1_createShortToken', () => {
+    describe('POST /token/create', () => {
         let longToken;
 
         beforeAll(async () => {
@@ -54,8 +54,8 @@ describe('Authentication Integration Tests', () => {
 
         it('should create short token with valid long token', async () => {
             const response = await request(baseURL)
-                .post('/token/v1_createShortToken')
-                .set('token', longToken)
+                .post('/token/create')
+                .set('Authorization', `Bearer ${longToken}`)
                 .set('device', 'test-device')
                 .send({});
 
@@ -65,7 +65,7 @@ describe('Authentication Integration Tests', () => {
 
         it('should reject request without long token', async () => {
             const response = await request(baseURL)
-                .post('/token/v1_createShortToken')
+                .post('/token/create')
                 .set('device', 'test-device');
 
             expect(response.status).toBe(401);

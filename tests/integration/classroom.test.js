@@ -21,8 +21,8 @@ describe('Classroom API Integration Tests', () => {
             }
 
             const tokenResponse = await request(baseURL)
-                .post('/token/v1_createShortToken')
-                .set('token', loginResponse.body.data.longToken)
+                .post('/token/create')
+                .set('Authorization', `Bearer ${loginResponse.body.data.longToken}`)
                 .set('device', 'test-device')
                 .send({});
 
@@ -34,8 +34,8 @@ describe('Classroom API Integration Tests', () => {
 
             // Create a school first
             const schoolResponse = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', shortToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send({
                     name: 'Test School for Classroom',
                     address: '123 School St',
@@ -51,7 +51,7 @@ describe('Classroom API Integration Tests', () => {
         }
     }, 30000);
 
-    describe('POST /classroom/createClassroom', () => {
+    describe('POST /classrooms', () => {
         it('should create classroom successfully', async () => {
             const classroomData = {
                 name: 'Integration Test Classroom',
@@ -61,8 +61,8 @@ describe('Classroom API Integration Tests', () => {
             };
 
             const response = await request(baseURL)
-                .post('/classroom/createClassroom')
-                .set('token', shortToken)
+                .post('/classrooms')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(classroomData);
 
             expect(response.status).toBe(200);
@@ -81,8 +81,8 @@ describe('Classroom API Integration Tests', () => {
             };
 
             const response = await request(baseURL)
-                .post('/classroom/createClassroom')
-                .set('token', shortToken)
+                .post('/classrooms')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(classroomData);
 
             expect(response.status).toBe(404);
@@ -90,12 +90,11 @@ describe('Classroom API Integration Tests', () => {
         });
     });
 
-    describe('POST /classroom/getClassroom', () => {
+    describe('GET /classrooms/:id', () => {
         it('should get classroom successfully', async () => {
             const response = await request(baseURL)
-                .post('/classroom/getClassroom')
-                .set('token', shortToken)
-                .send({ id: classroomId });
+                .get(`/classrooms/${classroomId}`)
+                .set('Authorization', `Bearer ${shortToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.data.classroom).toBeDefined();
@@ -104,12 +103,12 @@ describe('Classroom API Integration Tests', () => {
         });
     });
 
-    describe('POST /classroom/updateClassroom', () => {
+    describe('PUT /classrooms/:id', () => {
         it('should update classroom capacity successfully', async () => {
             const response = await request(baseURL)
-                .post('/classroom/updateClassroom')
-                .set('token', shortToken)
-                .send({ id: classroomId, capacity: 35 });
+                .put(`/classrooms/${classroomId}`)
+                .set('Authorization', `Bearer ${shortToken}`)
+                .send({ capacity: 35 });
 
             expect(response.status).toBe(200);
             expect(response.body.data.classroom.capacity).toBe(35);
@@ -117,20 +116,20 @@ describe('Classroom API Integration Tests', () => {
 
         it('should reject capacity below current enrollment', async () => {
             const response = await request(baseURL)
-                .post('/classroom/updateClassroom')
-                .set('token', shortToken)
-                .send({ id: classroomId, capacity: 0 });
+                .put(`/classrooms/${classroomId}`)
+                .set('Authorization', `Bearer ${shortToken}`)
+                .send({ capacity: 0 });
 
             expect(response.status).toBe(200);
         });
     });
 
-    describe('POST /classroom/listClassrooms', () => {
+    describe('GET /classrooms', () => {
         it('should list classrooms successfully', async () => {
             const response = await request(baseURL)
-                .post('/classroom/listClassrooms')
-                .set('token', shortToken)
-                .send({ page: 1, limit: 10 });
+                .get('/classrooms')
+                .set('Authorization', `Bearer ${shortToken}`)
+                .query({ page: 1, limit: 10 });
 
             expect(response.status).toBe(200);
             expect(response.body.data.classrooms).toBeDefined();

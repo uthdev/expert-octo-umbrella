@@ -22,8 +22,8 @@ describe('RBAC Integration Tests', () => {
             }
 
             const superadminTokenResponse = await request(baseURL)
-                .post('/token/v1_createShortToken')
-                .set('token', superadminLogin.body.data.longToken)
+                .post('/token/create')
+                .set('Authorization', `Bearer ${superadminLogin.body.data.longToken}`)
                 .set('device', 'test-device')
                 .send({});
 
@@ -46,8 +46,8 @@ describe('RBAC Integration Tests', () => {
             }
 
             const schoolAdminTokenResponse = await request(baseURL)
-                .post('/token/v1_createShortToken')
-                .set('token', schoolAdminLogin.body.data.longToken)
+                .post('/token/create')
+                .set('Authorization', `Bearer ${schoolAdminLogin.body.data.longToken}`)
                 .set('device', 'test-device')
                 .send({});
 
@@ -59,8 +59,8 @@ describe('RBAC Integration Tests', () => {
 
             // Create school for school admin
             const schoolAdminSchoolResponse = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', superadminToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${superadminToken}`)
                 .send({
                     name: 'School Admin School',
                     address: '123 School Admin St',
@@ -71,8 +71,8 @@ describe('RBAC Integration Tests', () => {
 
             // Create a different school for testing access control
             const schoolResponse = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', superadminToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${superadminToken}`)
                 .send({
                     name: 'RBAC Test School',
                     address: '123 RBAC St',
@@ -91,8 +91,8 @@ describe('RBAC Integration Tests', () => {
     describe('School Management Access Control', () => {
         it('should allow superadmin to create schools', async () => {
             const response = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', superadminToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${superadminToken}`)
                 .send({
                     name: 'Superadmin School',
                     address: '456 Admin Ave',
@@ -105,8 +105,8 @@ describe('RBAC Integration Tests', () => {
 
         it('should deny school admin from creating schools', async () => {
             const response = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', schoolAdminToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${schoolAdminToken}`)
                 .send({
                     name: 'Unauthorized School',
                     address: '789 Denied St',
@@ -114,39 +114,33 @@ describe('RBAC Integration Tests', () => {
                     email: `denied-${Date.now()}@test.com`
                 });
 
-            // School admin role check happens in manager, returns 403
             expect([400, 403]).toContain(response.status);
             expect(response.body.error || response.body.errors).toBeDefined();
         });
     });
 
     describe('Classroom Access Control', () => {
-        let classroomId;
-
         it('should allow school admin to create classroom in their school', async () => {
-            // Note: Demo school admin has null schoolId, so this will fail
-            // In production, school admins would have proper schoolId assigned
             const response = await request(baseURL)
-                .post('/classroom/createClassroom')
-                .set('token', schoolAdminToken)
+                .post('/classrooms')
+                .set('Authorization', `Bearer ${schoolAdminToken}`)
                 .send({
                     name: 'School Admin Classroom',
                     capacity: 25,
                     schoolId: schoolAdminSchoolId
                 });
 
-            // Expect 400 or 403 because school admin's token has null schoolId
             expect([400, 403]).toContain(response.status);
         });
 
         it('should deny school admin from creating classroom in different school', async () => {
             const response = await request(baseURL)
-                .post('/classroom/createClassroom')
-                .set('token', schoolAdminToken)
+                .post('/classrooms')
+                .set('Authorization', `Bearer ${schoolAdminToken}`)
                 .send({
                     name: 'Unauthorized Classroom',
                     capacity: 30,
-                    schoolId: schoolId // Different school
+                    schoolId: schoolId
                 });
 
             expect([400, 403]).toContain(response.status);
@@ -156,11 +150,9 @@ describe('RBAC Integration Tests', () => {
 
     describe('Student Access Control', () => {
         it('should allow school admin to create student in their school', async () => {
-            // Note: Demo school admin has null schoolId, so this will fail
-            // In production, school admins would have proper schoolId assigned
             const response = await request(baseURL)
-                .post('/student/createStudent')
-                .set('token', schoolAdminToken)
+                .post('/students')
+                .set('Authorization', `Bearer ${schoolAdminToken}`)
                 .send({
                     firstName: 'School',
                     lastName: 'Student',
@@ -168,19 +160,18 @@ describe('RBAC Integration Tests', () => {
                     schoolId: schoolAdminSchoolId
                 });
 
-            // Expect 400 or 403 because school admin's token has null schoolId
             expect([400, 403]).toContain(response.status);
         });
 
         it('should deny school admin from creating student in different school', async () => {
             const response = await request(baseURL)
-                .post('/student/createStudent')
-                .set('token', schoolAdminToken)
+                .post('/students')
+                .set('Authorization', `Bearer ${schoolAdminToken}`)
                 .send({
                     firstName: 'Unauthorized',
                     lastName: 'Student',
                     email: `unauthorized-${Date.now()}@test.com`,
-                    schoolId: schoolId // Different school
+                    schoolId: schoolId
                 });
 
             expect([400, 403]).toContain(response.status);
@@ -191,8 +182,8 @@ describe('RBAC Integration Tests', () => {
     describe('Authentication Required', () => {
         it('should deny access without token', async () => {
             const response = await request(baseURL)
-                .post('/school/listSchools')
-                .send({ page: 1, limit: 10 });
+                .get('/schools')
+                .query({ page: 1, limit: 10 });
 
             expect(response.status).toBe(401);
             expect(response.body.error || response.body.errors).toBeDefined();
@@ -200,9 +191,9 @@ describe('RBAC Integration Tests', () => {
 
         it('should deny access with invalid token', async () => {
             const response = await request(baseURL)
-                .post('/school/listSchools')
-                .set('token', 'invalid-token')
-                .send({ page: 1, limit: 10 });
+                .get('/schools')
+                .set('Authorization', 'Bearer invalid-token')
+                .query({ page: 1, limit: 10 });
 
             expect(response.status).toBe(401);
             expect(response.body.error || response.body.errors).toBeDefined();

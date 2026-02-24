@@ -22,8 +22,8 @@ describe('Student API Integration Tests', () => {
             }
 
             const tokenResponse = await request(baseURL)
-                .post('/token/v1_createShortToken')
-                .set('token', loginResponse.body.data.longToken)
+                .post('/token/create')
+                .set('Authorization', `Bearer ${loginResponse.body.data.longToken}`)
                 .set('device', 'test-device')
                 .send({});
 
@@ -35,8 +35,8 @@ describe('Student API Integration Tests', () => {
 
             // Create school and classroom
             const schoolResponse = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', shortToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send({
                     name: 'Student Test School',
                     address: '123 Student St',
@@ -47,8 +47,8 @@ describe('Student API Integration Tests', () => {
             schoolId = schoolResponse.body.data.school.id;
 
             const classroomResponse = await request(baseURL)
-                .post('/classroom/createClassroom')
-                .set('token', shortToken)
+                .post('/classrooms')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send({
                     name: 'Student Test Classroom',
                     capacity: 30,
@@ -63,7 +63,7 @@ describe('Student API Integration Tests', () => {
         }
     }, 30000);
 
-    describe('POST /student/createStudent', () => {
+    describe('POST /students', () => {
         it('should create student successfully', async () => {
             const studentData = {
                 firstName: 'John',
@@ -75,8 +75,8 @@ describe('Student API Integration Tests', () => {
             };
 
             const response = await request(baseURL)
-                .post('/student/createStudent')
-                .set('token', shortToken)
+                .post('/students')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(studentData);
 
             expect(response.status).toBe(200);
@@ -98,14 +98,14 @@ describe('Student API Integration Tests', () => {
 
             // Create first student
             await request(baseURL)
-                .post('/student/createStudent')
-                .set('token', shortToken)
+                .post('/students')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(studentData);
 
             // Try duplicate
             const response = await request(baseURL)
-                .post('/student/createStudent')
-                .set('token', shortToken)
+                .post('/students')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(studentData);
 
             expect(response.status).toBe(400);
@@ -113,12 +113,11 @@ describe('Student API Integration Tests', () => {
         });
     });
 
-    describe('POST /student/getStudent', () => {
+    describe('GET /students/:id', () => {
         it('should get student successfully', async () => {
             const response = await request(baseURL)
-                .post('/student/getStudent')
-                .set('token', shortToken)
-                .send({ id: studentId });
+                .get(`/students/${studentId}`)
+                .set('Authorization', `Bearer ${shortToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.data.student).toBeDefined();
@@ -128,12 +127,12 @@ describe('Student API Integration Tests', () => {
         });
     });
 
-    describe('POST /student/updateStudent', () => {
+    describe('PUT /students/:id', () => {
         it('should update student successfully', async () => {
             const response = await request(baseURL)
-                .post('/student/updateStudent')
-                .set('token', shortToken)
-                .send({ id: studentId, firstName: 'Johnny', phone: '0987654321' });
+                .put(`/students/${studentId}`)
+                .set('Authorization', `Bearer ${shortToken}`)
+                .send({ firstName: 'Johnny', phone: '0987654321' });
 
             expect(response.status).toBe(200);
             expect(response.body.data.student.firstName).toBe('Johnny');
@@ -141,15 +140,15 @@ describe('Student API Integration Tests', () => {
         });
     });
 
-    describe('POST /student/transferStudent', () => {
+    describe('POST /students/:id/transfer', () => {
         let newClassroomId;
 
         beforeAll(async () => {
             try {
                 // Create another classroom for transfer
                 const classroomResponse = await request(baseURL)
-                    .post('/classroom/createClassroom')
-                    .set('token', shortToken)
+                    .post('/classrooms')
+                    .set('Authorization', `Bearer ${shortToken}`)
                     .send({
                         name: 'Transfer Classroom',
                         capacity: 25,
@@ -165,9 +164,9 @@ describe('Student API Integration Tests', () => {
 
         it('should transfer student successfully', async () => {
             const response = await request(baseURL)
-                .post('/student/transferStudent')
-                .set('token', shortToken)
-                .send({ id: studentId, newClassroomId: newClassroomId });
+                .post(`/students/${studentId}/transfer`)
+                .set('Authorization', `Bearer ${shortToken}`)
+                .send({ newClassroomId: newClassroomId });
 
             expect(response.status).toBe(200);
             expect(response.body.data.message || response.body.message).toBe('Student transferred successfully');
@@ -176,21 +175,21 @@ describe('Student API Integration Tests', () => {
 
         it('should reject transfer to same classroom', async () => {
             const response = await request(baseURL)
-                .post('/student/transferStudent')
-                .set('token', shortToken)
-                .send({ id: studentId, newClassroomId: newClassroomId });
+                .post(`/students/${studentId}/transfer`)
+                .set('Authorization', `Bearer ${shortToken}`)
+                .send({ newClassroomId: newClassroomId });
 
             expect(response.status).toBe(400);
             expect(response.body.error || response.body.errors).toBeDefined();
         });
     });
 
-    describe('POST /student/listStudents', () => {
+    describe('GET /students', () => {
         it('should list students successfully', async () => {
             const response = await request(baseURL)
-                .post('/student/listStudents')
-                .set('token', shortToken)
-                .send({ page: 1, limit: 10 });
+                .get('/students')
+                .set('Authorization', `Bearer ${shortToken}`)
+                .query({ page: 1, limit: 10 });
 
             expect(response.status).toBe(200);
             expect(response.body.data.students).toBeDefined();

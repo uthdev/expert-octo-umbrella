@@ -20,8 +20,8 @@ describe('School API Integration Tests', () => {
             }
 
             const tokenResponse = await request(baseURL)
-                .post('/token/v1_createShortToken')
-                .set('token', loginResponse.body.data.longToken)
+                .post('/token/create')
+                .set('Authorization', `Bearer ${loginResponse.body.data.longToken}`)
                 .set('device', 'test-device')
                 .send({});
 
@@ -37,7 +37,7 @@ describe('School API Integration Tests', () => {
         }
     }, 30000);
 
-    describe('POST /school/createSchool', () => {
+    describe('POST /schools', () => {
         it('should create school successfully for superadmin', async () => {
             const schoolData = {
                 name: 'Test Integration School',
@@ -47,8 +47,8 @@ describe('School API Integration Tests', () => {
             };
 
             const response = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', shortToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(schoolData);
 
             expect(response.status).toBe(200);
@@ -68,14 +68,14 @@ describe('School API Integration Tests', () => {
 
             // Create first school
             await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', shortToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(schoolData);
 
             // Try to create duplicate
             const response = await request(baseURL)
-                .post('/school/createSchool')
-                .set('token', shortToken)
+                .post('/schools')
+                .set('Authorization', `Bearer ${shortToken}`)
                 .send(schoolData);
 
             expect(response.status).toBe(400);
@@ -83,12 +83,11 @@ describe('School API Integration Tests', () => {
         });
     });
 
-    describe('POST /school/getSchool', () => {
+    describe('GET /schools/:id', () => {
         it('should get school successfully', async () => {
             const response = await request(baseURL)
-                .post('/school/getSchool')
-                .set('token', shortToken)
-                .send({ id: schoolId });
+                .get(`/schools/${schoolId}`)
+                .set('Authorization', `Bearer ${shortToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.data.school).toBeDefined();
@@ -96,22 +95,20 @@ describe('School API Integration Tests', () => {
         });
 
         it('should return 404 for non-existent school', async () => {
-            // Use a valid ObjectId format that doesn't exist
             const response = await request(baseURL)
-                .post('/school/getSchool')
-                .set('token', shortToken)
-                .send({ id: '000000000000000000000000' });
+                .get('/schools/000000000000000000000000')
+                .set('Authorization', `Bearer ${shortToken}`);
 
             expect(response.status).toBe(404);
         });
     });
 
-    describe('POST /school/listSchools', () => {
+    describe('GET /schools', () => {
         it('should list schools with pagination', async () => {
             const response = await request(baseURL)
-                .post('/school/listSchools')
-                .set('token', shortToken)
-                .send({ page: 1, limit: 10 });
+                .get('/schools')
+                .set('Authorization', `Bearer ${shortToken}`)
+                .query({ page: 1, limit: 10 });
 
             expect(response.status).toBe(200);
             expect(response.body.data.schools).toBeDefined();
@@ -120,24 +117,23 @@ describe('School API Integration Tests', () => {
         });
     });
 
-    describe('POST /school/updateSchool', () => {
+    describe('PUT /schools/:id', () => {
         it('should update school successfully', async () => {
             const response = await request(baseURL)
-                .post('/school/updateSchool')
-                .set('token', shortToken)
-                .send({ id: schoolId, name: 'Updated Integration School' });
+                .put(`/schools/${schoolId}`)
+                .set('Authorization', `Bearer ${shortToken}`)
+                .send({ name: 'Updated Integration School' });
 
             expect(response.status).toBe(200);
             expect(response.body.data.school.name).toBe('Updated Integration School');
         });
     });
 
-    describe('POST /school/deleteSchool', () => {
+    describe('DELETE /schools/:id', () => {
         it('should delete school successfully', async () => {
             const response = await request(baseURL)
-                .post('/school/deleteSchool')
-                .set('token', shortToken)
-                .send({ id: schoolId });
+                .delete(`/schools/${schoolId}`)
+                .set('Authorization', `Bearer ${shortToken}`);
 
             expect(response.status).toBe(200);
             expect(response.body.data.message).toBeDefined();
