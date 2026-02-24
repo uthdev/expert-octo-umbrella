@@ -35,7 +35,7 @@ module.exports = class Auth {
                 email: 'school@demo.com',
                 password: await bcrypt.hash('school123', 10),
                 role: roles.SCHOOL_ADMIN,
-                schoolId: 'demo_school_001',
+                schoolId: null, // Will be set dynamically in tests
                 userKey: 'school_key_001'
             }
         };

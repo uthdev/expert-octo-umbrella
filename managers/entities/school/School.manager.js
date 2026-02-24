@@ -46,8 +46,12 @@ module.exports = class SchoolManager {
     }
 
     async getSchool({ id, __shortToken }) {
-
         try {
+            // Validate ObjectId format
+            if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+                return { error: 'Invalid school ID format', code: 400 };
+            }
+
             const school = await School.findById(id);
             if (!school) {
                 return { error: 'School not found', code: 404 };

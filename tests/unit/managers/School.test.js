@@ -132,7 +132,7 @@ describe('SchoolManager', () => {
 
     describe('getSchool', () => {
         it('should get school successfully', async () => {
-            const schoolId = 'test-school-id';
+            const schoolId = '507f1f77bcf86cd799439011'; // Valid ObjectId format
             const mockSchool = {
                 _id: schoolId,
                 name: 'Test School',
@@ -154,10 +154,11 @@ describe('SchoolManager', () => {
         });
 
         it('should return 404 for non-existent school', async () => {
+            const schoolId = '000000000000000000000000'; // Valid ObjectId format
             School.findById.mockResolvedValue(null);
 
             const result = await schoolManager.getSchool({ 
-                id: 'non-existent-id', 
+                id: schoolId, 
                 __shortToken: mockToken 
             });
 

@@ -57,15 +57,15 @@ describe('StudentManager', () => {
                 lastName: 'Doe',
                 email: 'john.doe@test.com',
                 phone: '1234567890',
-                schoolId: 'test-school-id',
-                classroomId: 'test-classroom-id',
-                __shortToken: mockToken
+                schoolId: '507f1f77bcf86cd799439011', // Valid ObjectId
+                classroomId: '507f1f77bcf86cd799439012', // Valid ObjectId
+                __shortToken: { ...mockToken, schoolId: '507f1f77bcf86cd799439011' }
             };
 
-            const mockSchool = { _id: 'test-school-id', name: 'Test School' };
+            const mockSchool = { _id: '507f1f77bcf86cd799439011', name: 'Test School' };
             const mockClassroom = { 
-                _id: 'test-classroom-id', 
-                schoolId: 'test-school-id',
+                _id: '507f1f77bcf86cd799439012', 
+                schoolId: '507f1f77bcf86cd799439011',
                 capacity: 30,
                 currentEnrollment: 20,
                 save: jest.fn().mockResolvedValue()
@@ -87,15 +87,15 @@ describe('StudentManager', () => {
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'john.doe@test.com',
-                schoolId: 'test-school-id',
-                classroomId: 'test-classroom-id',
-                __shortToken: mockToken
+                schoolId: '507f1f77bcf86cd799439011', // Valid ObjectId
+                classroomId: '507f1f77bcf86cd799439012', // Valid ObjectId
+                __shortToken: { ...mockToken, schoolId: '507f1f77bcf86cd799439011' }
             };
 
-            const mockSchool = { _id: 'test-school-id' };
+            const mockSchool = { _id: '507f1f77bcf86cd799439011' };
             const mockClassroom = { 
-                _id: 'test-classroom-id',
-                schoolId: 'test-school-id',
+                _id: '507f1f77bcf86cd799439012',
+                schoolId: '507f1f77bcf86cd799439011',
                 capacity: 30,
                 currentEnrollment: 30
             };
@@ -114,11 +114,11 @@ describe('StudentManager', () => {
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'existing@test.com',
-                schoolId: 'test-school-id',
-                __shortToken: mockToken
+                schoolId: '507f1f77bcf86cd799439011', // Valid ObjectId
+                __shortToken: { ...mockToken, schoolId: '507f1f77bcf86cd799439011' }
             };
 
-            const mockSchool = { _id: 'test-school-id' };
+            const mockSchool = { _id: '507f1f77bcf86cd799439011' };
             School.findById.mockResolvedValue(mockSchool);
             Student.findOne.mockResolvedValue({ email: 'existing@test.com' });
 

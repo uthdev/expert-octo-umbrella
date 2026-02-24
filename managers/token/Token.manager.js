@@ -38,7 +38,10 @@ module.exports = class TokenManager {
         let decoded = null;
         try {
             decoded = jwt.verify(token, secret);
-        } catch(err) { console.log(err); }
+        } catch(err) { 
+            // Token verification failed - this is expected for invalid/expired tokens
+            // The middleware will handle this by returning 401
+        }
         return decoded;
     }
 
@@ -56,7 +59,6 @@ module.exports = class TokenManager {
 
     v1_createShortToken({__longToken, __device}){
         let decoded = __longToken;
-        console.log(decoded);
         
         let shortToken = this.genShortToken({
             userId: decoded.userId, 

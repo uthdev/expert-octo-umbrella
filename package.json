@@ -9,7 +9,9 @@
     "dev:index": "nodemon index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest tests/integration --forceExit",
+    "test:unit": "jest tests/unit"
   },
   "author": "",
   "license": "ISC",
@@ -36,13 +38,26 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   },
   "jest": {
     "testEnvironment": "node",
     "collectCoverageFrom": [
       "managers/**/*.js",
       "!managers/**/*.test.js"
+    ],
+    "projects": [
+      {
+        "displayName": "unit",
+        "testMatch": ["**/tests/unit/**/*.test.js"]
+      },
+      {
+        "displayName": "integration",
+        "testMatch": ["**/tests/integration/**/*.test.js"],
+        "globalSetup": "./tests/integration/setup.js",
+        "globalTeardown": "./tests/integration/teardown.js"
+      }
     ]
   }
 }

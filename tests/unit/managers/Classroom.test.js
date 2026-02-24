@@ -48,12 +48,12 @@ describe('ClassroomManager', () => {
             const classroomData = {
                 name: 'Test Classroom',
                 capacity: 30,
-                schoolId: 'test-school-id',
+                schoolId: '507f1f77bcf86cd799439011', // Valid ObjectId
                 resources: ['projector', 'whiteboard'],
                 __shortToken: mockToken
             };
 
-            const mockSchool = { _id: 'test-school-id', name: 'Test School' };
+            const mockSchool = { _id: '507f1f77bcf86cd799439011', name: 'Test School' };
             School.findById.mockResolvedValue(mockSchool);
 
             const result = await classroomManager.createClassroom(classroomData);
@@ -68,9 +68,12 @@ describe('ClassroomManager', () => {
             const classroomData = {
                 name: 'Test Classroom',
                 capacity: 30,
-                schoolId: 'different-school-id',
-                __shortToken: { ...mockToken, role: roles.SCHOOL_ADMIN }
+                schoolId: '507f1f77bcf86cd799439012', // Different valid ObjectId
+                __shortToken: { ...mockToken, role: roles.SCHOOL_ADMIN, schoolId: '507f1f77bcf86cd799439011' }
             };
+
+            const mockSchool = { _id: '507f1f77bcf86cd799439012', name: 'Different School' };
+            School.findById.mockResolvedValue(mockSchool);
 
             const result = await classroomManager.createClassroom(classroomData);
 
@@ -82,7 +85,7 @@ describe('ClassroomManager', () => {
             const classroomData = {
                 name: 'Test Classroom',
                 capacity: 30,
-                schoolId: 'non-existent-school',
+                schoolId: '000000000000000000000000', // Valid ObjectId format
                 __shortToken: mockToken
             };
 

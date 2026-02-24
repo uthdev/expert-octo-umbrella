@@ -15,6 +15,14 @@ module.exports = class StudentManager {
 
     async createStudent({ firstName, lastName, email, phone, schoolId, classroomId, __shortToken }) {
         try {
+            // Validate ObjectId formats
+            if (!schoolId || !schoolId.match(/^[0-9a-fA-F]{24}$/)) {
+                return { error: 'Invalid school ID format', code: 400 };
+            }
+            if (classroomId && !classroomId.match(/^[0-9a-fA-F]{24}$/)) {
+                return { error: 'Invalid classroom ID format', code: 400 };
+            }
+
             // Validate school exists
             const school = await School.findById(schoolId);
             if (!school) {
