@@ -138,6 +138,28 @@ describe('ClassroomManager', () => {
             expect(result.error).toContain('Cannot reduce capacity below current enrollment');
             expect(result.code).toBe(400);
         });
+
+        it('should update capacity to exactly current enrollment', async () => {
+            const mockClassroom = {
+                _id: 'classroom-id',
+                name: 'Test Classroom',
+                capacity: 30,
+                currentEnrollment: 25,
+                schoolId: 'test-school-id',
+                save: jest.fn().mockResolvedValue()
+            };
+
+            Classroom.findById.mockResolvedValue(mockClassroom);
+
+            const result = await classroomManager.updateClassroom({
+                id: 'classroom-id',
+                capacity: 25,
+                __shortToken: mockToken
+            });
+
+            expect(mockClassroom.capacity).toBe(25);
+            expect(result.classroom.capacity).toBe(25);
+        });
     });
 });
 

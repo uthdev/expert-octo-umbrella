@@ -111,6 +111,23 @@ describe('SchoolManager', () => {
             expect(result.error).toBe('School with this email already exists');
             expect(result.code).toBe(400);
         });
+
+        it('should handle database errors gracefully', async () => {
+            const schoolData = {
+                name: 'Test School',
+                address: '123 Test St',
+                phone: '1234567890',
+                email: 'test@school.com',
+                __shortToken: mockToken
+            };
+
+            School.findOne.mockRejectedValue(new Error('Database connection failed'));
+
+            const result = await schoolManager.createSchool(schoolData);
+
+            expect(result.error).toBe('Failed to create school');
+            expect(result.code).toBe(500);
+        });
     });
 
     describe('getSchool', () => {

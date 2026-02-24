@@ -171,6 +171,61 @@ describe('StudentManager', () => {
             expect(mockStudent.classroomId).toBe('new-classroom-id');
             expect(result.message).toBe('Student transferred successfully');
         });
+
+        it('should reject transfer to same classroom', async () => {
+            const mockStudent = {
+                _id: 'student-id',
+                schoolId: 'test-school-id',
+                classroomId: 'same-classroom-id'
+            };
+
+            const mockClassroom = {
+                _id: 'same-classroom-id',
+                schoolId: 'test-school-id'
+            };
+
+            Student.findById.mockResolvedValue(mockStudent);
+            Classroom.findById.mockResolvedValue(mockClassroom);
+
+            const result = await studentManager.transferStudent({
+                id: 'student-id',
+                newClassroomId: 'same-classroom-id',
+                __shortToken: mockToken
+            });
+
+            expect(result.error).toBe('Student is already in this classroom');
+            expect(result.code).toBe(400);
+        });
+
+        it('should handle transfer for student with no current classroom', async () => {
+            const mockStudent = {
+                _id: 'student-id',
+                schoolId: 'test-school-id',
+                classroomId: null,
+                save: jest.fn().mockResolvedValue()
+            };
+
+            const mockNewClassroom = {
+                _id: 'new-classroom-id',
+                schoolId: 'test-school-id',
+                capacity: 30,
+                currentEnrollment: 15,
+                save: jest.fn().mockResolvedValue()
+            };
+
+            Student.findById.mockResolvedValue(mockStudent);
+            Classroom.findById.mockResolvedValue(mockNewClassroom);
+
+            const result = await studentManager.transferStudent({
+                id: 'student-id',
+                newClassroomId: 'new-classroom-id',
+                __shortToken: mockToken
+            });
+
+            expect(mockNewClassroom.currentEnrollment).toBe(16);
+            expect(mockStudent.classroomId).toBe('new-classroom-id');
+            expect(result.message).toBe('Student transferred successfully');
+        });
     });
 });
 

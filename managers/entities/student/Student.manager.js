@@ -289,6 +289,11 @@ module.exports = class StudentManager {
                 return { error: 'Cannot transfer student to classroom in different school', code: 400 };
             }
 
+            // Check if student is already in this classroom
+            if (student.classroomId && student.classroomId.toString() === newClassroomId) {
+                return { error: 'Student is already in this classroom', code: 400 };
+            }
+
             // Check new classroom capacity
             if (newClassroom.currentEnrollment >= newClassroom.capacity) {
                 return { error: 'New classroom is at full capacity', code: 400 };
