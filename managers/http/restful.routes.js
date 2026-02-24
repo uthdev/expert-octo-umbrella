@@ -54,6 +54,11 @@ module.exports = ({ managers, mwsRepo }) => {
     };
 
     // ==================== Authentication ====================
+    router.post('/auth/register', async (req, res) => {
+        const result = await managers.auth.register(req.body);
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
     router.post('/auth/login', async (req, res) => {
         const result = await managers.auth.login(req.body);
         return managers.responseDispatcher.dispatch(res, formatResponse(result));
@@ -152,6 +157,43 @@ module.exports = ({ managers, mwsRepo }) => {
 
     router.post('/students/:id/transfer', verifyShortToken, async (req, res) => {
         const result = await managers.student.transferStudent({ ...req.body, id: req.params.id, __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    // ==================== Users (RESTful) ====================
+    router.post('/users', verifyShortToken, async (req, res) => {
+        const result = await managers.user.createUser({ ...req.body, __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    router.get('/users', verifyShortToken, async (req, res) => {
+        const result = await managers.user.listUsers({ ...req.query, __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    router.get('/users/:id', verifyShortToken, async (req, res) => {
+        const result = await managers.user.getUser({ id: req.params.id, __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    router.put('/users/:id', verifyShortToken, async (req, res) => {
+        const result = await managers.user.updateUser({ ...req.body, id: req.params.id, __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    router.delete('/users/:id', verifyShortToken, async (req, res) => {
+        const result = await managers.user.deleteUser({ id: req.params.id, __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    // ==================== Profile (Student Self-Service) ====================
+    router.get('/profile', verifyShortToken, async (req, res) => {
+        const result = await managers.user.getProfile({ __shortToken: req.__shortToken });
+        return managers.responseDispatcher.dispatch(res, formatResponse(result));
+    });
+
+    router.put('/profile', verifyShortToken, async (req, res) => {
+        const result = await managers.user.updateProfile({ ...req.body, __shortToken: req.__shortToken });
         return managers.responseDispatcher.dispatch(res, formatResponse(result));
     });
 

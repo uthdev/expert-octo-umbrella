@@ -1,4 +1,6 @@
+const User = require('../user/User.model');
 const bcrypt = require('bcrypt');
+const { nanoid } = require('nanoid');
 const roles = require('../../../constants/roles');
 
 module.exports = class Auth {
@@ -9,7 +11,60 @@ module.exports = class Auth {
         this.tokenManager = managers.token;
         this.cache = cache;
         
-        this.httpExposed = ['login', 'logout'];
+        this.httpExposed = ['register', 'login', 'logout'];
+    }
+
+    async register({ email, password, firstName, lastName, phone, role = roles.SUPERADMIN }) {
+        // Validation
+        if (!email || !password || !firstName || !lastName) {
+            return { error: 'Email, password, firstName, and lastName are required', code: 400 };
+        }
+
+        // Only allow superadmin registration through this endpoint
+        // Other roles should be created by superadmin/school_admin via User manager
+        if (role !== roles.SUPERADMIN) {
+            return { error: 'Only superadmin registration is allowed through this endpoint', code: 400 };
+        }
+
+        try {
+            // Check if email already exists
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return { error: 'User with this email already exists', code: 400 };
+            }
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Create user
+            const user = new User({
+                email,
+                password: hashedPassword,
+                role,
+                firstName,
+                lastName,
+                phone,
+                schoolId: null,
+                userKey: nanoid()
+            });
+
+            await user.save();
+
+            // Generate tokens
+            const longToken = this.tokenManager.genLongToken({
+                userId: user._id.toString(),
+                userKey: user.userKey,
+                role: user.role,
+                schoolId: user.schoolId
+            });
+
+            return {
+                user: user.toJSON(),
+                longToken
+            };
+        } catch (error) {
+            return { error: error.message, code: 500 };
+        }
     }
 
     async login({ email, password }) {
@@ -18,54 +73,39 @@ module.exports = class Auth {
             return { error: 'Email and password are required', code: 400 };
         }
 
-        // For demo purposes, create hardcoded users
-        // In production, this would query a User model
-        const users = {
-            'admin@school.com': {
-                id: 'superadmin_001',
-                email: 'admin@school.com',
-                password: await bcrypt.hash('admin123', 10),
-                role: roles.SUPERADMIN,
-                schoolId: null,
-                userKey: 'super_key_001'
-            },
-            'school@demo.com': {
-                id: 'school_admin_001', 
-                email: 'school@demo.com',
-                password: await bcrypt.hash('school123', 10),
-                role: roles.SCHOOL_ADMIN,
-                schoolId: null, // Will be set dynamically in tests
-                userKey: 'school_key_001'
+        try {
+            // Find user by email
+            const user = await User.findOne({ email });
+            if (!user) {
+                return { error: 'Invalid credentials', code: 401 };
             }
-        };
 
-        const user = users[email];
-        if (!user) {
-            return { error: 'Invalid credentials', code: 401 };
-        }
+            // Check if user is active
+            if (user.status !== 'active') {
+                return { error: 'Account is not active', code: 403 };
+            }
 
-        const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
-            return { error: 'Invalid credentials', code: 401 };
-        }
+            // Verify password
+            const isValidPassword = await user.comparePassword(password);
+            if (!isValidPassword) {
+                return { error: 'Invalid credentials', code: 401 };
+            }
 
-        // Generate tokens
-        const longToken = this.tokenManager.genLongToken({
-            userId: user.id,
-            userKey: user.userKey,
-            role: user.role,
-            schoolId: user.schoolId
-        });
-
-        return {
-            user: {
-                id: user.id,
-                email: user.email,
+            // Generate tokens
+            const longToken = this.tokenManager.genLongToken({
+                userId: user._id.toString(),
+                userKey: user.userKey,
                 role: user.role,
-                schoolId: user.schoolId
-            },
-            longToken
-        };
+                schoolId: user.schoolId?.toString() || null
+            });
+
+            return {
+                user: user.toJSON(),
+                longToken
+            };
+        } catch (error) {
+            return { error: error.message, code: 500 };
+        }
     }
 
     async logout({ __token }) {

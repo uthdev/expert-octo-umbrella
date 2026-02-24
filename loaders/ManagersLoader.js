@@ -16,6 +16,7 @@ const AuthManager           = require('../managers/entities/auth/Auth.manager');
 const SchoolManager         = require('../managers/entities/school/School.manager');
 const ClassroomManager      = require('../managers/entities/classroom/Classroom.manager');
 const StudentManager        = require('../managers/entities/student/Student.manager');
+const UserManager           = require('../managers/entities/user/User.manager');
 
 /** 
  * load sharable modules
@@ -74,6 +75,7 @@ module.exports = class ManagersLoader {
         this.managers.school              = new SchoolManager(this.injectable);
         this.managers.classroom           = new ClassroomManager(this.injectable);
         this.managers.student             = new StudentManager(this.injectable);
+        this.managers.user                = new UserManager(this.injectable);
         /*************************************************************************************************/
         this.managers.mwsExec             = new VirtualStack({ ...{ preStack: ['__device',] }, ...this.injectable });
         this.managers.userApi             = new ApiHandler({...this.injectable,...{prop:'httpExposed'}});

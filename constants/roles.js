@@ -1,11 +1,13 @@
 module.exports = {
     SUPERADMIN: 'superadmin',
     SCHOOL_ADMIN: 'school_admin',
+    STUDENT: 'student',
     
     // Role hierarchy for permission checking
     ROLE_HIERARCHY: {
-        superadmin: 2,
-        school_admin: 1
+        superadmin: 3,
+        school_admin: 2,
+        student: 1
     },
     
     // Permissions mapping
@@ -22,7 +24,11 @@ module.exports = {
             'student:create',
             'student:read',
             'student:update',
-            'student:delete'
+            'student:delete',
+            'user:create',
+            'user:read',
+            'user:update',
+            'user:delete'
         ],
         school_admin: [
             'classroom:create',
@@ -32,7 +38,14 @@ module.exports = {
             'student:create',
             'student:read',
             'student:update',
-            'student:delete'
+            'student:delete',
+            'user:create',
+            'user:read'
+        ],
+        student: [
+            'profile:read',
+            'profile:update',
+            'classroom:read'
         ]
     }
 };

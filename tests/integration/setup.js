@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const http = require('http');
+const seedTestUsers = require('./seed');
 
 let serverProcess = null;
 
@@ -45,6 +46,9 @@ const waitForServer = (port, maxAttempts = 30) => {
 };
 
 module.exports = async () => {
+    console.log('🌱 Seeding database with test users...');
+    await seedTestUsers();
+    
     console.log('Starting server for integration tests...');
     
     serverProcess = spawn('node', ['index.js'], {
