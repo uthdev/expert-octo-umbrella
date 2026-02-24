@@ -13,6 +13,13 @@ module.exports = ({ managers, mwsRepo }) => {
     };
 
     router.use(extractToken);
+    
+    // ==================== Health Check ====================
+    router.get('/health', async (req, res) => {
+        const result = await managers.health.checkHealth();
+        return res.status(200).json(result);
+    });
+
     const verifyShortToken = async (req, res, next) => {
         if (!req.headers.token) {
             return managers.responseDispatcher.dispatch(res, { ok: false, error: 'unauthorized', code: 401 });
