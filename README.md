@@ -702,6 +702,36 @@ All error responses follow this format:
 
 ## Database Schema
 
+### User Collection
+```javascript
+{
+  _id: ObjectId,
+  email: String (required, unique, indexed),
+  password: String (required, hashed with bcrypt),
+  role: String (required, enum: ['superadmin', 'school_admin', 'student']),
+  schoolId: ObjectId (ref: "School", indexed, nullable),
+  firstName: String (required),
+  lastName: String (required),
+  phone: String,
+  userKey: String (required, unique),
+  status: String (default: "active"),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Indexes:**
+- `email` (unique)
+- `userKey` (unique)
+- `schoolId`
+- `role`
+- `status`
+
+**Relationships:**
+- `schoolId` → School._id (Many-to-One, nullable for superadmins)
+
+---
+
 ### School Collection
 ```javascript
 {
@@ -779,6 +809,25 @@ All error responses follow this format:
 
 ```
 ┌─────────────────┐
+│      User       │
+│─────────────────│
+│ _id (PK)        │
+│ email (unique)  │
+│ password (hash) │
+│ role            │
+│ schoolId (FK)   │
+│ firstName       │
+│ lastName        │
+│ phone           │
+│ userKey (unique)│
+│ status          │
+│ createdAt       │
+│ updatedAt       │
+└────────┬────────┘
+         │
+         │ N:1
+         │
+┌────────▼────────┐
 │     School      │
 │─────────────────│
 │ _id (PK)        │
@@ -827,8 +876,11 @@ All error responses follow this format:
 ```
 
 **Relationships:**
+- Many Users belong to one School (school admins and students)
+- Superadmin users have null schoolId
 - One School has many Classrooms
 - One School has many Students
+- One School has many Users (school admins)
 - One Classroom has many Students
 - One Classroom belongs to one School
 - One Student belongs to one School
@@ -921,6 +973,75 @@ Test categories:
 6. **Input Sanitization:** XSS protection
 7. **Password Hashing:** Bcrypt for password storage
 8. **Health Monitoring:** Health check endpoint for service monitoring
+
+---
+
+## Development Assumptions & Scalability
+
+### Assumptions Made
+
+**Authentication & Authorization:**
+- Two-token JWT system (long token = refresh, short token = access) provides security without session storage
+- Long tokens have 7-day expiry, short tokens have 1-hour expiry
+- Tokens are stateless (no database lookup required for validation)
+- Device identifier required for token creation (enables multi-device support)
+- School admins are permanently assigned to one school (schoolId cannot be changed)
+- Students can only manage their own profile, not other students
+
+**Data Model:**
+- Email uniqueness enforced at application level for Users
+- Email + schoolId compound uniqueness for Students (same email allowed across different schools)
+- Soft deletes not implemented (hard deletes used for simplicity)
+- Classroom capacity is advisory, not enforced at database level
+- Student enrollment date auto-set to current timestamp
+
+**Business Logic:**
+- School admins can only access resources within their assigned school
+- Superadmins have unrestricted access to all resources
+- Student transfers only allowed within the same school
+- No audit trail or change history tracking
+- No email verification or password reset functionality
+
+### Scalability Considerations
+
+**Database Optimization:**
+- MongoDB indexes on frequently queried fields (email, schoolId, status, role)
+- Compound index on Student (email + schoolId) for efficient duplicate checking
+- Pagination implemented on all list endpoints (default: 10 items per page)
+- Query filtering by schoolId reduces dataset size for school admins
+
+**Performance:**
+- Stateless JWT authentication eliminates database lookups for every request
+- Rate limiting (100 req/15min) prevents abuse and protects resources
+- Connection pooling via Mongoose for efficient database connections
+- Lean queries used where full Mongoose documents not needed
+
+**Horizontal Scaling:**
+- Stateless architecture allows multiple API instances behind load balancer
+- No in-memory session storage (all state in JWT tokens)
+- MongoDB supports sharding for data distribution
+- Docker containerization enables easy deployment to orchestration platforms (Kubernetes, ECS)
+
+**Caching Strategy:**
+- Cache layer prepared (Redis interface in code) but not implemented
+- Can add caching for:
+  - User role/permissions lookup
+  - School/classroom metadata
+  - Frequently accessed student lists
+
+**Monitoring & Observability:**
+- Health check endpoint (`/api/health`) for uptime monitoring
+- Structured error responses for easier debugging
+- Request logging can be added via middleware
+- Database connection status exposed in health check
+
+**Future Scalability Improvements:**
+- Implement Redis for session management and caching
+- Add database read replicas for read-heavy operations
+- Implement event-driven architecture for async operations (email notifications, etc.)
+- Add CDN for static assets
+- Implement GraphQL for flexible client queries
+- Add full-text search with Elasticsearch for student/school search
 
 ---
 
