@@ -39,7 +39,7 @@ module.exports = class UserServer {
         });
 
         let server = http.createServer(app);
-        server.listen(this.config.dotEnv.USER_PORT, () => {
+        server.listen(this.config.dotEnv.USER_PORT, '0.0.0.0', () => {
             console.log(`${(this.config.dotEnv.SERVICE_NAME).toUpperCase()} is running on port: ${this.config.dotEnv.USER_PORT}`);
         });
     }
