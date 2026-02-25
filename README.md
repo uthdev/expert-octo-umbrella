@@ -25,11 +25,13 @@ A RESTful API service for managing schools, classrooms, and students with role-b
 - **Role-Based Access Control (RBAC)**
   - Superadmin: Full system access
   - School Admin: School-specific resource management
+  - Student: Profile management
   
 - **Entity Management**
   - Schools: Complete CRUD operations (superadmin only)
   - Classrooms: CRUD with capacity and resource management
   - Students: CRUD with enrollment and transfer capabilities
+  - Users: User management with role-based creation
 
 - **Security**
   - JWT-based authentication (long token + short token flow)
@@ -38,8 +40,13 @@ A RESTful API service for managing schools, classrooms, and students with role-b
   - Helmet security headers
 
 - **Testing**
-  - 67 automated tests (34 unit + 33 integration)
+  - 82 automated tests (34 unit + 48 integration)
   - 100% test success rate
+
+- **Deployment**
+  - Docker containerization with docker-compose
+  - Health check endpoint for monitoring
+  - Production-ready deployment scripts
 
 ## Architecture
 
@@ -51,7 +58,7 @@ This project follows the **Axion Manager-Based Architecture** pattern:
 - **Auto-Routing**: Routes generated from `httpExposed` arrays
 - **Response Dispatcher**: Centralized response handling
 
-All API routes follow the pattern: `POST /api/{entity}/{method}`
+The API supports both RESTful routes (GET, POST, PUT, DELETE) and Axion pattern routes (`POST /api/{entity}/{method}`)
 
 ## Prerequisites
 
@@ -63,7 +70,7 @@ All API routes follow the pattern: `POST /api/{entity}/{method}`
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/uthdev/expert-octo-umbrella.git
 cd expert-octo-umbrella
 ```
 
@@ -286,7 +293,7 @@ curl -X GET http://localhost:5111/api/schools?page=1&limit=10 \
 
 ## API Endpoints
 
-All endpoints use `POST` method and require authentication (except login).
+The API provides RESTful endpoints using standard HTTP methods. All endpoints require authentication (except login and health check).
 
 ### Authentication
 
@@ -318,8 +325,8 @@ All endpoints use `POST` method and require authentication (except login).
 - **Success Response:** `200 OK`
 
 #### Create Short Token
-- **Endpoint:** `POST /api/token/v1_createShortToken`
-- **Headers:** `token: <longToken>`, `device: <device-id>`
+- **Endpoint:** `POST /api/token/create`
+- **Headers:** `Authorization: Bearer <longToken>`, `device: <device-id>`
 - **Body:** `{}`
 - **Success Response:** `200 OK`
   ```json
@@ -334,7 +341,7 @@ All endpoints use `POST` method and require authentication (except login).
 ### Schools (Superadmin Only)
 
 #### Create School
-- **Endpoint:** `POST /api/school/createSchool`
+- **Endpoint:** `POST /api/schools`
 - **Auth Required:** Yes (superadmin)
 - **Body:**
   ```json
@@ -364,18 +371,16 @@ All endpoints use `POST` method and require authentication (except login).
   ```
 
 #### Get School
-- **Endpoint:** `POST /api/school/getSchool`
+- **Endpoint:** `GET /api/schools/:id`
 - **Auth Required:** Yes
-- **Body:** `{ "id": "64f8a1b2c3d4e5f6a7b8c9d0" }`
 - **Success Response:** `200 OK`
 
 #### Update School
-- **Endpoint:** `POST /api/school/updateSchool`
+- **Endpoint:** `PUT /api/schools/:id`
 - **Auth Required:** Yes (superadmin)
 - **Body:**
   ```json
   {
-    "id": "64f8a1b2c3d4e5f6a7b8c9d0",
     "name": "Updated School Name",
     "address": "New Address",
     "phone": "+15559876543",
@@ -385,21 +390,13 @@ All endpoints use `POST` method and require authentication (except login).
 - **Success Response:** `200 OK`
 
 #### Delete School
-- **Endpoint:** `POST /api/school/deleteSchool`
+- **Endpoint:** `DELETE /api/schools/:id`
 - **Auth Required:** Yes (superadmin)
-- **Body:** `{ "id": "64f8a1b2c3d4e5f6a7b8c9d0" }`
 - **Success Response:** `200 OK`
 
 #### List Schools
-- **Endpoint:** `POST /api/school/listSchools`
+- **Endpoint:** `GET /api/schools?page=1&limit=10`
 - **Auth Required:** Yes
-- **Body:**
-  ```json
-  {
-    "page": 1,
-    "limit": 10
-  }
-  ```
 - **Success Response:** `200 OK`
   ```json
   {
@@ -421,7 +418,7 @@ All endpoints use `POST` method and require authentication (except login).
 ### Classrooms (School Admin + Superadmin)
 
 #### Create Classroom
-- **Endpoint:** `POST /api/classroom/createClassroom`
+- **Endpoint:** `POST /api/classrooms`
 - **Auth Required:** Yes
 - **Body:**
   ```json
@@ -436,9 +433,8 @@ All endpoints use `POST` method and require authentication (except login).
 - **Note:** School admins can only create classrooms in their assigned school
 
 #### Get Classroom
-- **Endpoint:** `POST /api/classroom/getClassroom`
+- **Endpoint:** `GET /api/classrooms/:id`
 - **Auth Required:** Yes
-- **Body:** `{ "id": "64f8a1b2c3d4e5f6a7b8c9d1" }`
 - **Success Response:** `200 OK`
   ```json
   {
@@ -459,12 +455,11 @@ All endpoints use `POST` method and require authentication (except login).
   ```
 
 #### Update Classroom
-- **Endpoint:** `POST /api/classroom/updateClassroom`
+- **Endpoint:** `PUT /api/classrooms/:id`
 - **Auth Required:** Yes
 - **Body:**
   ```json
   {
-    "id": "64f8a1b2c3d4e5f6a7b8c9d1",
     "name": "Advanced Math",
     "capacity": 35,
     "resources": ["projector", "whiteboard", "computers", "tablets"]
@@ -473,22 +468,13 @@ All endpoints use `POST` method and require authentication (except login).
 - **Success Response:** `200 OK`
 
 #### Delete Classroom
-- **Endpoint:** `POST /api/classroom/deleteClassroom`
+- **Endpoint:** `DELETE /api/classrooms/:id`
 - **Auth Required:** Yes
-- **Body:** `{ "id": "64f8a1b2c3d4e5f6a7b8c9d1" }`
 - **Success Response:** `200 OK`
 
 #### List Classrooms
-- **Endpoint:** `POST /api/classroom/listClassrooms`
+- **Endpoint:** `GET /api/classrooms?page=1&limit=10&schoolId=64f8a1b2c3d4e5f6a7b8c9d0`
 - **Auth Required:** Yes
-- **Body:**
-  ```json
-  {
-    "page": 1,
-    "limit": 10,
-    "schoolId": "64f8a1b2c3d4e5f6a7b8c9d0"
-  }
-  ```
 - **Success Response:** `200 OK`
 - **Note:** School admins automatically see only their school's classrooms
 
@@ -497,7 +483,7 @@ All endpoints use `POST` method and require authentication (except login).
 ### Students (School Admin + Superadmin)
 
 #### Create Student
-- **Endpoint:** `POST /api/student/createStudent`
+- **Endpoint:** `POST /api/students`
 - **Auth Required:** Yes
 - **Body:**
   ```json
@@ -532,18 +518,16 @@ All endpoints use `POST` method and require authentication (except login).
   ```
 
 #### Get Student
-- **Endpoint:** `POST /api/student/getStudent`
+- **Endpoint:** `GET /api/students/:id`
 - **Auth Required:** Yes
-- **Body:** `{ "id": "64f8a1b2c3d4e5f6a7b8c9d2" }`
 - **Success Response:** `200 OK`
 
 #### Update Student
-- **Endpoint:** `POST /api/student/updateStudent`
+- **Endpoint:** `PUT /api/students/:id`
 - **Auth Required:** Yes
 - **Body:**
   ```json
   {
-    "id": "64f8a1b2c3d4e5f6a7b8c9d2",
     "firstName": "Jane",
     "phone": "+15559876543",
     "status": "active"
@@ -552,37 +536,109 @@ All endpoints use `POST` method and require authentication (except login).
 - **Success Response:** `200 OK`
 
 #### Delete Student
-- **Endpoint:** `POST /api/student/deleteStudent`
+- **Endpoint:** `DELETE /api/students/:id`
 - **Auth Required:** Yes
-- **Body:** `{ "id": "64f8a1b2c3d4e5f6a7b8c9d2" }`
 - **Success Response:** `200 OK`
 
 #### List Students
-- **Endpoint:** `POST /api/student/listStudents`
+- **Endpoint:** `GET /api/students?page=1&limit=10&schoolId=64f8a1b2c3d4e5f6a7b8c9d0&classroomId=64f8a1b2c3d4e5f6a7b8c9d1`
 - **Auth Required:** Yes
-- **Body:**
-  ```json
-  {
-    "page": 1,
-    "limit": 10,
-    "schoolId": "64f8a1b2c3d4e5f6a7b8c9d0",
-    "classroomId": "64f8a1b2c3d4e5f6a7b8c9d1"
-  }
-  ```
 - **Success Response:** `200 OK`
 
 #### Transfer Student
-- **Endpoint:** `POST /api/student/transferStudent`
+- **Endpoint:** `POST /api/students/:id/transfer`
 - **Auth Required:** Yes
 - **Body:**
   ```json
   {
-    "id": "64f8a1b2c3d4e5f6a7b8c9d2",
     "newClassroomId": "64f8a1b2c3d4e5f6a7b8c9d3"
   }
   ```
 - **Success Response:** `200 OK`
 - **Note:** Transfers student to a different classroom within the same school
+
+---
+
+### Users (Superadmin + School Admin)
+
+#### Register User (Public)
+- **Endpoint:** `POST /api/auth/register`
+- **Auth Required:** No
+- **Body:**
+  ```json
+  {
+    "email": "newadmin@test.com",
+    "password": "password123",
+    "firstName": "John",
+    "lastName": "Doe"
+  }
+  ```
+- **Success Response:** `200 OK` (Creates superadmin by default)
+
+#### Create User
+- **Endpoint:** `POST /api/users`
+- **Auth Required:** Yes
+- **Body:**
+  ```json
+  {
+    "email": "user@test.com",
+    "password": "password123",
+    "role": "school_admin",
+    "schoolId": "64f8a1b2c3d4e5f6a7b8c9d0",
+    "firstName": "Jane",
+    "lastName": "Smith"
+  }
+  ```
+- **Note:** Superadmin can create any role; School admin can only create students
+
+#### Get User
+- **Endpoint:** `GET /api/users/:id`
+- **Auth Required:** Yes
+
+#### Update User
+- **Endpoint:** `PUT /api/users/:id`
+- **Auth Required:** Yes
+
+#### Delete User
+- **Endpoint:** `DELETE /api/users/:id`
+- **Auth Required:** Yes (superadmin only)
+
+#### List Users
+- **Endpoint:** `GET /api/users?page=1&limit=10`
+- **Auth Required:** Yes
+
+#### Get Profile (Self-Service)
+- **Endpoint:** `GET /api/profile`
+- **Auth Required:** Yes
+
+#### Update Profile (Self-Service)
+- **Endpoint:** `PUT /api/profile`
+- **Auth Required:** Yes
+- **Body:**
+  ```json
+  {
+    "firstName": "Updated",
+    "phone": "+1234567890"
+  }
+  ```
+
+---
+
+### Health Check
+
+#### Check Service Health
+- **Endpoint:** `GET /api/health`
+- **Auth Required:** No
+- **Success Response:** `200 OK`
+  ```json
+  {
+    "status": "healthy",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "service": "school-management-api",
+    "uptime": 3600.5,
+    "database": "connected"
+  }
+  ```
 
 ---
 
@@ -775,7 +831,7 @@ All error responses follow this format:
 
 ## Demo Credentials
 
-The system uses **hardcoded demo users** for authentication. There is **no registration/signup endpoint** - only pre-configured users can login.
+The system includes pre-configured demo users for testing:
 
 ### Superadmin Account
 ```
@@ -791,13 +847,13 @@ Email: school@demo.com
 Password: school123
 Role: school_admin
 Access: School-specific resources only
-Note: Demo account has null schoolId
 ```
 
-**Important:** 
-- These are the only users that can login to the system
-- No account creation/registration endpoint is available
-- In production, implement a User model and database-backed authentication
+**User Management:**
+- New superadmins can be created via `POST /api/auth/register`
+- Superadmins can create school admins and students via `POST /api/users`
+- School admins can create students in their school
+- All users are stored in MongoDB with bcrypt-hashed passwords
 
 ---
 
@@ -810,7 +866,9 @@ expert-octo-umbrella/
 │   │   ├── auth/          # Authentication logic
 │   │   ├── school/        # School CRUD operations
 │   │   ├── classroom/     # Classroom CRUD operations
-│   │   └── student/       # Student CRUD operations
+│   │   ├── student/       # Student CRUD operations
+│   │   ├── user/          # User management
+│   │   └── health/        # Health check
 │   ├── api/               # API handler
 │   ├── http/              # HTTP server
 │   └── token/             # JWT token management
@@ -831,9 +889,9 @@ expert-octo-umbrella/
 
 ## Testing Coverage
 
-- **Total Tests:** 67
+- **Total Tests:** 82
 - **Unit Tests:** 34 (Manager logic, validators)
-- **Integration Tests:** 33 (API endpoints, authentication, RBAC)
+- **Integration Tests:** 48 (API endpoints, authentication, RBAC, user management)
 - **Success Rate:** 100%
 
 Test categories:
@@ -849,12 +907,13 @@ Test categories:
 ## Security Features
 
 1. **JWT Authentication:** Two-token system (long + short tokens)
-2. **Role-Based Access Control:** Superadmin and School Admin roles
+2. **Role-Based Access Control:** Superadmin, School Admin, and Student roles
 3. **Rate Limiting:** 100 requests per 15 minutes per IP
 4. **Input Validation:** MongoDB ObjectId validation, required field checks
 5. **Security Headers:** Helmet middleware for HTTP security
 6. **Input Sanitization:** XSS protection
 7. **Password Hashing:** Bcrypt for password storage
+8. **Health Monitoring:** Health check endpoint for service monitoring
 
 ---
 
