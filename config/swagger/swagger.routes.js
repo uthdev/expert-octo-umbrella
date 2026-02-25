@@ -59,7 +59,8 @@
  *                       description: Use this to create short token
  *       400:
  *         description: Email already exists or validation error
- *
+ */
+
 /**
  * @swagger
  * /api/auth/login:
