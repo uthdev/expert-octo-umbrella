@@ -1,5 +1,67 @@
 /**
  * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new superadmin user
+ *     description: Public endpoint to create a new superadmin account. No authentication required.
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - firstName
+ *               - lastName
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: newadmin@test.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *     responses:
+ *       200:
+ *         description: User registered successfully - Returns LONG TOKEN
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         role:
+ *                           type: string
+ *                           example: superadmin
+ *                     longToken:
+ *                       type: string
+ *                       description: Use this to create short token
+ *       400:
+ *         description: Email already exists or validation error
+ *
+/**
+ * @swagger
  * /api/auth/login:
  *   post:
  *     summary: Login to get long token (Step 1 of authentication)
