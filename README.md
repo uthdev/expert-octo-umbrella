@@ -2,6 +2,13 @@
 
 A RESTful API service for managing schools, classrooms, and students with role-based access control. Built using the Axion architecture template with MongoDB for data persistence.
 
+## 🚀 Live Demo
+
+- **API Base URL:** https://expert-octo-umbrella.fly.dev/api
+- **Swagger Documentation:** https://expert-octo-umbrella.fly.dev/api-docs
+- **Health Check:** https://expert-octo-umbrella.fly.dev/api/health
+- **GitHub Repository:** https://github.com/uthdev/expert-octo-umbrella
+
 ## Table of Contents
 - [Features](#features)
 - [Architecture](#architecture)

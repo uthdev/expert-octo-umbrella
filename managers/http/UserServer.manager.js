@@ -29,8 +29,30 @@ module.exports = class UserServer {
         /** Swagger documentation */
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+        /** Root route */
+        app.get('/', (req, res) => {
+            res.json({
+                message: 'School Management System API',
+                version: '1.0.0',
+                endpoints: {
+                    api: '/api',
+                    docs: '/api-docs',
+                    health: '/api/health'
+                }
+            });
+        });
+
         /** RESTful routes */
         app.use('/api', restfulRoutes({ managers: this.managers, mwsRepo: this.mwsRepo }));
+
+        /** 404 handler for undefined routes */
+        app.use((req, res) => {
+            res.status(404).json({
+                ok: false,
+                error: 'Route not found',
+                code: 404
+            });
+        });
 
         /** an error handler */
         app.use((err, req, res, next) => {
