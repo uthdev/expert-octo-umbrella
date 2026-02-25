@@ -13,6 +13,10 @@ const options = {
     },
     servers: [
       {
+        url: 'https://expert-octo-umbrella.fly.dev',
+        description: 'Production server',
+      },
+      {
         url: 'http://localhost:5111',
         description: 'Development server',
       },

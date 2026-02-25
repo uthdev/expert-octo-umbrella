@@ -21,4 +21,12 @@ primary_region = 'jnb'
   cpu_kind = 'shared'
   cpus = 1
 
+[env]
+  SERVICE_NAME = "school-management-api"
+  ENV = "production"
+  USER_PORT = "5111"
+  ADMIN_PORT = "5222"
+  RATE_LIMIT_WINDOW_MS = "900000"
+  RATE_LIMIT_MAX_REQUESTS = "100"
+
 
